@@ -39,18 +39,6 @@ class Test1 { //fjern public foran class Test
     }
 
     @Test
-    public void testarr() {
-        //Arrange - klargør objekter og whatnot
-        int[] numbers = {1, 2, 3, 8, 4};
-        int[] expected = {1, 2, 3, 4, 8};
-
-        //Act - udfør den kode der skal testes
-        Arrays.sort(numbers);
-        //Assert
-        assertArrayEquals(expected, numbers, "Tester 5 tal ");
-    }
-
-    @Test
     public void testParent1FindByName() {
         //Arrange - klargør objekter og whatnot
         String name = "NyBådetype";

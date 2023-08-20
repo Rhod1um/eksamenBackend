@@ -1,12 +1,16 @@
 package com.example.eksamentemplate.service;
 
+import com.example.eksamentemplate.exception.ObjectAlreadyExistsException;
 import com.example.eksamentemplate.exception.ResourceNotFoundException;
 import com.example.eksamentemplate.model.Member;
 import com.example.eksamentemplate.repository.MemberRepo;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 
@@ -32,13 +36,18 @@ public class MemberService {
     //POST
     public ResponseEntity<Member> create(Member member) {
         //post er non-idempotent, så tjek om id findes i forvejen
-        try {
-            memberRepo.save(member);
-        } catch (Exception e) {
-            System.out.println("Error: " + e.getMessage());
-            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR); //kan smide sin egen her
-        } //man får den præcise fejl i fejlbesked
-        return new ResponseEntity<>(memberRepo.save(member), HttpStatus.CREATED);
+        int id = member.getMemberId();
+        if (memberRepo.findById(id).isEmpty()){
+            try {
+                memberRepo.save(member);
+            } catch (Exception e) {
+                System.out.println("Error: " + e.getMessage());
+                return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR); //kan smide sin egen her
+            } //man får den præcise fejl i fejlbesked
+            return new ResponseEntity<>(memberRepo.save(member), HttpStatus.CREATED);
+        } else {
+            throw new ObjectAlreadyExistsException("Medlem med id " + id + " findes allerede");
+        }
     }
     //PUT
     public ResponseEntity<Member> update(Member updatedMember) {

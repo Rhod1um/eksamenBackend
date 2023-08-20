@@ -1,28 +1,32 @@
 package com.example.eksamentemplate.service;
 
+import com.example.eksamentemplate.exception.ObjectAlreadyExistsException;
 import com.example.eksamentemplate.exception.ResourceNotFoundException;
-import com.example.eksamentemplate.model.Participant;
 import com.example.eksamentemplate.model.Boat;
+import com.example.eksamentemplate.model.Participant;
 import com.example.eksamentemplate.model.Race;
 import com.example.eksamentemplate.repository.ParticipantRepo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
-import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 @Service
 public class ParticipantService {
+    private final int maxNumber;
     private final ParticipantRepo participantRepo;
     @Autowired
     public ParticipantService(ParticipantRepo participantRepo) {
         this.participantRepo = participantRepo;
+        maxNumber = 15;
     }
-    //repo skal ikke annoteres med @Repository, autwire kan altid finde repo
+    //repo skal ikke annoteres med @Repository, autowire kan altid finde repo
     //GET all
     public List<Participant> getAll() {
         return participantRepo.findAll();
@@ -35,7 +39,6 @@ public class ParticipantService {
             return new ResponseEntity<>(participantRepo.findById(id).get(), HttpStatus.OK);
         } else {
             throw new ResourceNotFoundException("Deltager med id " + id + "blev ikke fundet.");
-            //return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
         //String className = this.getClass().getSimpleName();
         //className initialization er redundant?? Kan den finde class name ud fra className variabel alene?
@@ -48,21 +51,27 @@ public class ParticipantService {
     //POST
     public ResponseEntity<Participant> create(Participant participant) {
         //check hvor mange deltagere et sejlads har
+        int id = participant.getParticipantId();
+        if (participantRepo.findById(id).isEmpty()){
+            return check(participant);
+        } else throw new ObjectAlreadyExistsException("Deltager med id " + id + " findes allerede");
+    }
+    private ResponseEntity<Participant> check(Participant participant){
         Race race = participant.getRace();
         System.out.println(race);
-        Integer count = participantRepo.countAllParticipantsByRace(race);
+        Integer count = participantRepo.countAllParticipantsByRace(race); //count
         System.out.println(count);
-        if (count < 15) {
-            System.out.println("den skal ikke gå videre");
+        if (count < maxNumber) {
+            System.out.println("den skal ikke gå videre hvis count over 15");
             try {
                 participantRepo.save(participant);
             } catch (Exception e) {
                 System.out.println("Error: " + e.getMessage());
-                return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR); //kan smide sin egen her
-            } //man får den præcise fejl i fejlbesked
+                return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
+            }
             return new ResponseEntity<>(participantRepo.save(participant), HttpStatus.CREATED);
         } else throw new ResponseStatusException(HttpStatus.CONFLICT,
-                "der er for mange deltagere på dette sejlads");
+                "Der er for mange deltagere på dette kapsejlads");
     }
     //PUT
     public ResponseEntity<Participant> update(Participant updatedParticipant) {
@@ -84,6 +93,7 @@ public class ParticipantService {
             throw new ResourceNotFoundException("Deltager med id " + id + "blev ikke fundet.");
         }
     }
+    //EKSTRA
     //countAll
     public Integer countAll(){
         System.out.println(participantRepo.countAll());
@@ -92,23 +102,25 @@ public class ParticipantService {
 
     //Ekstra
     /*
-    public ResponseEntity<Participant> findByName(String name){
-        if (participantRepo.findByName(name).isPresent()){
-            return new ResponseEntity<>(participantRepo.findByName(name).get(), HttpStatus.OK);
-        } else {
-            throw new ResourceNotFoundException("Child med navn " + name + "blev ikke fundet.");
-            //return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        }
-    }
-    public List<Participant> findByParent1Name(String name){
-        return participantRepo.findByParent1Name(name);
-    }
-
     public List<Participant> getAllParticipantsByBoat(Integer boat){
         return participantRepo.getAllParticipantsByBoatbyBoatId(boat);
     }*/
-    public Integer getPointsPerBoat(Integer id){
-        System.out.println(participantRepo.getTotalPointsByBoatId(id));
-        return participantRepo.getTotalPointsByBoatId(id);
+    public List<Integer> getTotalPointsGroupedByBoatId(){
+        /*
+        List<Boat> boats = participantRepo.getAllBoatsByParticipantId();
+        System.out.println(boats);
+        Map<Boat, Integer> boatSummedPoint = new HashMap<>();
+        //var obj = participantRepo.getTotalPointsByBoatId(boat.getBoatId());
+        for (Boat boat : boats) {
+            boatSummedPoint.put(boat, participantRepo.getTotalPointsByBoatId(boat.getBoatId()));
+        }
+        System.out.println(boatSummedPoint);*/
+
+        //List<Integer> boatId = participantRepo.getAllBoatsByParticipantId();
+        //System.out.println(boatId);
+        //participant repo kan ikke returnere båd objekt, kun id
+        //List<Boat> boats = participantRepo.getAllBoatsByParticipantId();
+
+        return participantRepo.getTotalPointsGroupedByBoatId();
     }
 }

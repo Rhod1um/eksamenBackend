@@ -1,5 +1,6 @@
 package com.example.eksamentemplate.service;
 
+import com.example.eksamentemplate.exception.ObjectAlreadyExistsException;
 import com.example.eksamentemplate.exception.ResourceNotFoundException;
 import com.example.eksamentemplate.model.BoatType;
 import com.example.eksamentemplate.repository.BoatTypeRepo;
@@ -32,14 +33,18 @@ public class BoatTypeService {
     }
     //POST
     public ResponseEntity<BoatType> create(BoatType boatType) {
-        //post er non-idempotent, så tjek om id findes i forvejen
-        try {
-            boatTypeRepo.save(boatType);
-        } catch (Exception e) {
-            System.out.println("Error: " + e.getMessage());
-            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR); //kan smide sin egen her
-        } //man får den præcise fejl i fejlbesked
-        return new ResponseEntity<>(boatTypeRepo.save(boatType), HttpStatus.CREATED);
+        int id = boatType.getBoatTypeId();
+        if (boatTypeRepo.findById(id).isEmpty()){
+            try {
+                boatTypeRepo.save(boatType);
+            } catch (Exception e) {
+                System.out.println("Error: " + e.getMessage());
+                return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR); //kan smide sin egen her
+            }
+            return new ResponseEntity<>(boatTypeRepo.save(boatType), HttpStatus.CREATED); //sker hvis den ikke catcher
+        } else {
+            throw new ObjectAlreadyExistsException("Bådtype med id " + id + " findes allerede");
+        }
     }
     //PUT
     public ResponseEntity<BoatType> update(BoatType updatedBoatType) {

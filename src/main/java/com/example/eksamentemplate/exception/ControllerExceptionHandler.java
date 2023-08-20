@@ -14,7 +14,7 @@ public class ControllerExceptionHandler {
 
     //når en ResourceNotFoundException throwes et sted i koden kommer vi her ind
     @ExceptionHandler(ResourceNotFoundException.class) //bruger vores egen!
-    ResponseEntity<ErrorMessage> resourceNotFoundException(Exception ex){
+    ResponseEntity<ErrorMessage> resourceNotFoundException(RuntimeException ex){
         ErrorMessage message = new ErrorMessage( //laver instans af vores egen ErrorMessage klasse
                 HttpStatus.NOT_FOUND.value(),
                 new Date(),
@@ -25,8 +25,16 @@ public class ControllerExceptionHandler {
     //hver endpoint kan smide en exception så her kan vi specificere hvad der skal ske ved en exception
     //vi gider ikke skrive exception handler kode i service, derfor her
 
-
-    //exception uden brug af egen exception. Returnerer bare en string
+    // exception uden brug af egen exception. Returnerer bare en string
+    @ExceptionHandler(ObjectAlreadyExistsException.class)
+    ResponseEntity<ErrorMessage> ObjectAlreadyExistsException(RuntimeException ex) {
+        ErrorMessage message = new ErrorMessage( //laver instans af vores egen ErrorMessage klasse
+                HttpStatus.CONFLICT.value(),
+                new Date(),
+                ex.getMessage()
+        );
+        return new ResponseEntity<>(message, HttpStatus.CONFLICT);
+    }
     /*
     @ExceptionHandler(value = { IllegalArgumentException.class, IllegalStateException.class })
     ResponseEntity<String> handleConflict(RuntimeException ex, WebRequest request) {

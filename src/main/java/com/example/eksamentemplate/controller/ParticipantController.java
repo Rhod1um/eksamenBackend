@@ -4,9 +4,11 @@ import com.example.eksamentemplate.model.Boat;
 import com.example.eksamentemplate.model.Participant;
 import com.example.eksamentemplate.service.ParticipantService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -47,9 +49,9 @@ public class ParticipantController {
         return participantService.countAll();
     }
 
-    @GetMapping("/point/{id}")
-    public Integer getPointPerBoat(@PathVariable Integer id){
-        return participantService.getPointsPerBoat(id);
+    @GetMapping("/points")
+    public List<Integer> getTotalPointsGroupedByBoatId(){
+        return participantService.getTotalPointsGroupedByBoatId();
     }
 
     //Ekstra

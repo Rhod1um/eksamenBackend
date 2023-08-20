@@ -7,6 +7,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @CrossOrigin(origins = "*", methods = {RequestMethod.GET, RequestMethod.POST, RequestMethod.PUT, RequestMethod.DELETE, RequestMethod.OPTIONS}, allowedHeaders = {"Content-Type", "Authorization"})
@@ -50,5 +51,13 @@ public class BoatController {
     @GetMapping("/count")
     public Integer countAll(){
         return boatService.countAll();
+    }
+    @GetMapping("/boats")
+    public Map<Integer, Boat> boats(){
+        return boatService.boats();
+    }
+    @GetMapping("/points")
+    public List<Integer> sumPoints(){
+        return boatService.sumPoints();
     }
 }
